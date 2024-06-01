@@ -1,0 +1,44 @@
+
+services:
+  uptimekuma:
+    image: docker.io/louislam/uptime-kuma:latest
+    container_name: uptimekuma
+    environment:
+      - UPTIME_KUMA_DISABLE_FRAME_SAMEORIGIN=false
+    ports:
+      - 3001:3001
+    volumes:
+      - uptimekuma-data:/app/data
+    restart: unless-stopped
+
+  node_exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: node_exporter
+    ports:
+      - 9100:9100
+    command:
+      - '--path.rootfs=/host'
+    pid: host
+    restart: unless-stopped
+    volumes:
+      - '/:/host:ro,rslave'
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    ports:
+      - 8080:8080
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    devices:
+      - /dev/kmsg
+    privileged: true
+    restart: unless-stopped
+
+volumes:
+  uptimekuma-data:
+    driver: local
